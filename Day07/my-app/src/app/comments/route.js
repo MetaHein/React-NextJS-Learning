@@ -1,7 +1,15 @@
 import { comments } from "./data";
 
-export async function GET() {
-  return Response.json(comments);
+export async function GET(request) {
+  const searchParams = request.nextUrl.searchParams;
+  const query = searchParams.get("query");
+  const filteredComments = query
+    ? comments.filter((comment) =>
+        comment.text.toLowerCase().includes(query.toLowerCase()),
+      )
+    : comments;
+
+  return Response.json(filteredComments);
 }
 
 export async function POST(request) {
@@ -14,7 +22,7 @@ export async function POST(request) {
 
   comments.push(newComment);
   return new Response(JSON.stringify(newComment), {
-    header: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json" },
     status: 201,
   });
 }
