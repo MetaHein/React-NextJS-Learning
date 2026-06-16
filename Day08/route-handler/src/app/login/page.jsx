@@ -16,21 +16,48 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // Simulate login - replace with real API call
       if (email === "admin@example.com" && password === "password") {
-        // Set cookie (in real app, this comes from your backend)
-        document.cookie = "auth_token=your_jwt_token_here; path=/";
+        // CRITICAL FIX: Set cookie with proper syntax
+        // The cookie MUST be set here before redirecting
+        document.cookie =
+          "auth_token=your_jwt_token_here; path=/; max-age=86400";
 
-        // Redirect to products page
-        router.push("/products");
+        // VERIFY: Check if cookie was actually set
+        console.log("All cookies after setting:", document.cookie);
+        console.log(
+          "Contains auth_token?",
+          document.cookie.includes("auth_token"),
+        );
+
+        // If cookie wasn't set, try alternative method
+        if (!document.cookie.includes("auth_token")) {
+          console.log("Cookie not set, trying alternative method...");
+          // Alternative: Set with all options
+          document.cookie =
+            "auth_token=your_jwt_token_here; path=/; max-age=86400; SameSite=Lax; Secure=false";
+          console.log("All cookies after alternative:", document.cookie);
+        }
+
+        // Force a delay to ensure cookie is written
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Use window.location for more reliable redirect
+        window.location.href = "/products";
       } else {
         setError("Invalid email or password");
       }
     } catch (err) {
+      console.error("Login error:", err);
       setError("Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Add this debugging function
+  const debugCookies = () => {
+    console.log(" Current all cookies:", document.cookie);
+    alert("Current cookies: " + document.cookie);
   };
 
   return (
