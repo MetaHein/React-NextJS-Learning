@@ -1,34 +1,19 @@
 import ProductTable from "@/components/products/ProductTable";
+import Link from "next/link";
 
-async function getProducts() {
-  const res = await fetch("http://localhost:3000/api/products", {
-    cache: "no-store",
-  });
-
-  return res.json();
-}
-
-export default async function ProductsPage() {
-  const products = await getProducts();
-
+export default function ProductsPage() {
   return (
-    <div className="min-h-screen bg-slate-100 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-slate-800">
-            Product Management
-          </h1>
-
-          <a
-            href="/products/create"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-medium transition"
-          >
-            + Add Product
-          </a>
-        </div>
-
-        <ProductTable products={products} />
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+        <Link
+          href="/products/create"
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+        >
+          Add New Product
+        </Link>
       </div>
+      <ProductTable />
     </div>
   );
 }

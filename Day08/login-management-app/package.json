@@ -1,5 +1,5 @@
 {
-  "name": "route-handler",
+  "name": "login-management-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,22 +9,19 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.4.0",
-    "axios": "^1.18.0",
+    "bcryptjs": "^3.0.3",
     "mysql2": "^3.22.5",
     "next": "16.2.9",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-hook-form": "^7.79.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "autoprefixer": "^10.5.0",
+    "@types/bcryptjs": "^2.4.6",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
-    "postcss": "^8.5.15",
-    "tailwindcss": "^4.3.1"
+    "tailwindcss": "^4"
   }
 }

@@ -1,10 +1,22 @@
 import mysql from "mysql2/promise";
+import { dbConfig } from "@/config/database";
 
-const pool = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "root",
-  database: "productdb",
-});
+let pool = null;
 
-export default pool;
+export async function getConnection() {
+  if (!pool) {
+    pool = mysql.createPool({
+      ...dbConfig,
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+    });
+  }
+  return pool;
+}
+
+export async function query(sql, params) {
+  const connection = await getConnection();
+  const [results] = await connection.execute(sql, params);
+  return results;
+}

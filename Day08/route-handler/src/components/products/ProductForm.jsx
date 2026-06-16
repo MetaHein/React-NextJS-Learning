@@ -1,83 +1,90 @@
 "use client";
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { productSchema } from "@/lib/validations/product";
 
-export default function ProductForm({ product, isEdit }) {
-  const [name, setName] = useState(product?.name || "");
-  const [price, setPrice] = useState(product?.price || "");
+export default function ProductForm({
+  initialData,
+  onSubmit,
+  buttonText = "Create Product",
+}) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm({
+    resolver: zodResolver(productSchema),
+    defaultValues: initialData || {
+      name: "",
+      price: "",
+      item: "",
+    },
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const url = isEdit ? `/api/products/${product.id}` : "/api/products";
-
-    const method = isEdit ? "PUT" : "POST";
-
-    await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name, price }),
-    });
-
-    window.location.href = "/products";
+  const handleFormSubmit = async (data) => {
+    await onSubmit(data);
+    if (!initialData) {
+      reset();
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 p-6">
-      <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
-        {/* Title */}
-        <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">
-          {isEdit ? "Edit Product" : "Create Product"}
-        </h2>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Product Name
-            </label>
-
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter product name"
-              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-              required
-            />
-          </div>
-
-          {/* Price */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Price
-            </label>
-
-            <input
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              placeholder="Enter price"
-              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-              required
-            />
-          </div>
-
-          {/* Button */}
-          <button
-            type="submit"
-            className={`w-full py-3 rounded-xl font-semibold text-white transition ${
-              isEdit
-                ? "bg-yellow-500 hover:bg-yellow-600"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
-          >
-            {isEdit ? "Update Product" : "Create Product"}
-          </button>
-        </form>
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Product Name
+        </label>
+        <input
+          {...register("name")}
+          type="text"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="Enter product name"
+        />
+        {errors.name && (
+          <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+        )}
       </div>
-    </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Price
+        </label>
+        <input
+          {...register("price", { valueAsNumber: true })}
+          type="number"
+          step="0.01"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="Enter price"
+        />
+        {errors.price && (
+          <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Item Category
+        </label>
+        <input
+          {...register("item")}
+          type="text"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="Enter item category"
+        />
+        {errors.item && (
+          <p className="mt-1 text-sm text-red-600">{errors.item.message}</p>
+        )}
+      </div>
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        {isSubmitting ? "Processing..." : buttonText}
+      </button>
+    </form>
   );
 }

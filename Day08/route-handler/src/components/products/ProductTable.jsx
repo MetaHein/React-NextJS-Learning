@@ -1,72 +1,104 @@
 "use client";
 
-export default function ProductTable({ products }) {
-  const handleDelete = async (id) => {
-    const ok = confirm("Delete this product?");
-    if (!ok) return;
+import { useState, useEffect } from "react";
+import { productApi } from "@/lib/api";
+import EditProductButton from "./EditProductButton";
+import DeleteProductButton from "./DeleteProductButton";
+import { formatPrice } from "@/utils/format";
 
-    const res = await fetch(`/api/products/${id}`, {
-      method: "DELETE",
-    });
+export default function ProductTable() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    const data = await res.json();
-    console.log("DELETE RESPONSE:", data);
-
-    if (res.ok) {
-      location.reload();
-    } else {
-      alert("Delete failed");
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await productApi.getAll();
+      setProducts(response.data.data);
+      setError(null);
+    } catch (err) {
+      setError("Failed to load products");
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const handleDelete = (id) => {
+    setProducts(products.filter((product) => product.id !== id));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        {error}
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white shadow-lg rounded-xl overflow-hidden">
-      <table className="w-full">
-        <thead className="bg-slate-800 text-white">
+    <div className="overflow-x-auto bg-white rounded-lg shadow">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
           <tr>
-            <th className="p-4 text-left">ID</th>
-            <th className="p-4 text-left">Name</th>
-            <th className="p-4 text-left">Price</th>
-            <th className="p-4 text-center">Actions</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              ID
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Name
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Price
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Item
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Actions
+            </th>
           </tr>
         </thead>
-
-        <tbody>
+        <tbody className="bg-white divide-y divide-gray-200">
           {products.map((product) => (
-            <tr key={product.id} className="border-b hover:bg-slate-50">
-              <td className="p-4">{product.id}</td>
-
-              <td className="p-4 font-medium">{product.name}</td>
-
-              <td className="p-4">${product.price}</td>
-
-              <td className="p-4 flex gap-2 justify-center">
-                <a
-                  href={`/products/edit/${product.id}`}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-md"
-                >
-                  Edit
-                </a>
-
-                <button
-                  onClick={() => handleDelete(product.id)}
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md"
-                >
-                  Delete
-                </button>
+            <tr key={product.id} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {product.id}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {product.name}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {formatPrice(product.price)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {product.item}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                <EditProductButton product={product} onUpdate={fetchProducts} />
+                <DeleteProductButton id={product.id} onDelete={handleDelete} />
               </td>
             </tr>
           ))}
-
-          {products.length === 0 && (
-            <tr>
-              <td colSpan="4" className="text-center p-8 text-slate-500">
-                No products found
-              </td>
-            </tr>
-          )}
         </tbody>
       </table>
+      {products.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          No products found. Create your first product!
+        </div>
+      )}
     </div>
   );
 }

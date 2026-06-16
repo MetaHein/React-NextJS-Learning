@@ -1,36 +1,37 @@
-import db from "@/lib/db";
+import { query } from "@/lib/db";
 
-export async function getProducts() {
-  const [rows] = await db.query("SELECT * FROM products");
-  return rows;
+class ProductRepository {
+  async findAll() {
+    const sql = "SELECT * FROM products ORDER BY created_at DESC";
+    return await query(sql);
+  }
+
+  async findById(id) {
+    const sql = "SELECT * FROM products WHERE id = ?";
+    const results = await query(sql, [id]);
+    return results[0] || null;
+  }
+
+  async create(productData) {
+    const { name, price, item } = productData;
+    const sql = "INSERT INTO products (name, price, item) VALUES (?, ?, ?)";
+    const result = await query(sql, [name, price, item]);
+    return this.findById(result.insertId);
+  }
+
+  async update(id, productData) {
+    const { name, price, item } = productData;
+    const sql =
+      "UPDATE products SET name = ?, price = ?, item = ? WHERE id = ?";
+    await query(sql, [name, price, item, id]);
+    return this.findById(id);
+  }
+
+  async delete(id) {
+    const sql = "DELETE FROM products WHERE id = ?";
+    const result = await query(sql, [id]);
+    return result.affectedRows > 0;
+  }
 }
 
-export async function getProductById(id) {
-  const [rows] = await db.query("SELECT * FROM products WHERE id=?", [id]);
-  return rows[0];
-}
-
-export async function createProduct(product) {
-  const { name, price } = product;
-
-  const [result] = await db.query(
-    "INSERT INTO products(name,price) VALUES(?,?)",
-    [name, price],
-  );
-
-  return result.insertId;
-}
-
-export async function updateProduct(id, product) {
-  const { name, price } = product;
-
-  await db.query("UPDATE products SET name=?, price=? WHERE id=?", [
-    name,
-    price,
-    id,
-  ]);
-}
-
-export async function deleteProduct(id) {
-  await db.query("DELETE FROM products WHERE id=?", [id]);
-}
+export default new ProductRepository();
