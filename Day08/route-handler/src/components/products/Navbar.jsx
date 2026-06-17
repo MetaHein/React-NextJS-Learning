@@ -10,12 +10,18 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Check auth status whenever cookie changes
-  const checkAuthStatus = () => {
-    const hasToken = document.cookie.includes("auth_token");
-    setIsLoggedIn(hasToken);
-    setLoading(false);
-    return hasToken;
+  // Check auth status by calling the API
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch("/api/auth/me", {
+        credentials: "include",
+      });
+      setIsLoggedIn(response.ok);
+    } catch (error) {
+      setIsLoggedIn(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -23,23 +29,40 @@ export default function Navbar() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     checkAuthStatus();
 
-    //  Listen for cookie changes (when user logs in/out)
+    // Listen for route changes to re-check auth
+    const handleRouteChange = () => {
+      checkAuthStatus();
+    };
+
+    // Check auth status every 5 seconds (optional)
     const interval = setInterval(() => {
-      const currentStatus = document.cookie.includes("auth_token");
-      if (currentStatus !== isLoggedIn) {
-        setIsLoggedIn(currentStatus);
-      }
-    }, 1000); // Check every second
+      checkAuthStatus();
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, [isLoggedIn]);
+  }, [pathname]);
 
-  const handleLogout = () => {
-    // Clear the cookie
-    document.cookie =
-      "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    setIsLoggedIn(false);
-    router.push("/login");
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Clear client-side cookie
+      document.cookie =
+        "session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      document.cookie =
+        "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+
+      setIsLoggedIn(false);
+      // Clear any stored user data
+      localStorage.removeItem("user");
+      router.push("/login");
+      router.refresh();
+    }
   };
 
   // Show loading state
@@ -62,23 +85,35 @@ export default function Navbar() {
           <div className="flex space-x-8">
             <Link
               href="/"
-              className="flex items-center text-gray-900 hover:text-blue-600"
+              className={`flex items-center ${
+                pathname === "/"
+                  ? "text-blue-600"
+                  : "text-gray-900 hover:text-blue-600"
+              } transition-colors`}
             >
               Home
             </Link>
 
-            {/*Only show product links if logged in */}
+            {/* Only show product links if logged in */}
             {isLoggedIn && (
               <>
                 <Link
                   href="/products"
-                  className="flex items-center text-gray-900 hover:text-blue-600"
+                  className={`flex items-center ${
+                    pathname === "/products"
+                      ? "text-blue-600"
+                      : "text-gray-900 hover:text-blue-600"
+                  } transition-colors`}
                 >
                   Products
                 </Link>
                 <Link
                   href="/products/create"
-                  className="flex items-center text-gray-900 hover:text-blue-600"
+                  className={`flex items-center ${
+                    pathname === "/products/create"
+                      ? "text-blue-600"
+                      : "text-gray-900 hover:text-blue-600"
+                  } transition-colors`}
                 >
                   Add Product
                 </Link>
@@ -97,7 +132,9 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className={`text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  pathname === "/login" ? "bg-blue-50" : ""
+                }`}
               >
                 Login
               </Link>

@@ -49,14 +49,15 @@ export default function EditProductPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Product</h1>
-      <div className="max-w-md">
-        <ProductForm
-          initialData={product}
-          onSubmit={handleSubmit}
-          buttonText="Update Product"
-        />
-      </div>
+      <h1 className="text-2xl font-bold text-gray-900 text-center">
+        Edit Product
+      </h1>
+
+      <ProductForm
+        initialData={product}
+        onSubmit={handleSubmit}
+        buttonText="Update Product"
+      />
     </div>
   );
 }

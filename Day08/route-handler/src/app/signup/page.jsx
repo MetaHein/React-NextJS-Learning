@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import LoginForm from "@/components/auth/LoginForm";
+import SignupForm from "@/components/auth/SignupForm";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const router = useRouter();
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export default function LoginPage() {
         }
       } catch (error) {
         // Not authenticated, show login form
-        console.log("Not authenticated, showing login form");
+        console.log("Not authenticated, showing signup form");
       }
     };
 
@@ -29,8 +29,8 @@ export default function LoginPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <LoginForm />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <SignupForm />
     </div>
   );
 }

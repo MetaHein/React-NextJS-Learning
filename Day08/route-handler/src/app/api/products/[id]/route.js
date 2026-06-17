@@ -1,15 +1,29 @@
 import { NextResponse } from "next/server";
 import productService from "@/services/product.service";
+import { productSchema } from "@/lib/validations/product";
 
-// ADD THIS HELPER FUNCTION
 function isAuthenticated(request) {
-  const token = request.cookies.get("auth_token")?.value;
-  return !!token;
+  // Debug: Log all cookies
+  console.log("All cookies in API:", request.cookies.getAll());
+
+  // Check for session_id cookie
+  const token = request.cookies.get("session_id")?.value;
+  console.log("Token found:", token ? "Yes" : "No");
+
+  // Also check Authorization header as fallback
+  const authHeader = request.headers.get("authorization");
+  const tokenFromHeader = authHeader?.startsWith("Bearer ")
+    ? authHeader.substring(7)
+    : null;
+
+  const isAuth = !!(token || tokenFromHeader);
+  console.log("Is authenticated:", isAuth);
+
+  return isAuth;
 }
 
-// GET single product
 export async function GET(request, { params }) {
-  // ADD THIS AUTH CHECK
+  // Check authentication
   if (!isAuthenticated(request)) {
     return NextResponse.json(
       { success: false, error: "Authentication required" },
@@ -22,6 +36,7 @@ export async function GET(request, { params }) {
     const product = await productService.getProductById(parseInt(id));
     return NextResponse.json({ success: true, data: product });
   } catch (error) {
+    console.error("Error fetching product:", error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 404 },
@@ -29,9 +44,7 @@ export async function GET(request, { params }) {
   }
 }
 
-// PUT update product
 export async function PUT(request, { params }) {
-  // ADD THIS AUTH CHECK
   if (!isAuthenticated(request)) {
     return NextResponse.json(
       { success: false, error: "Authentication required" },
@@ -42,9 +55,30 @@ export async function PUT(request, { params }) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const product = await productService.updateProduct(parseInt(id), body);
+
+    const validationResult = productSchema.partial().safeParse(body);
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Validation failed",
+          details: validationResult.error.errors.map((err) => ({
+            field: err.path.join("."),
+            message: err.message,
+          })),
+        },
+        { status: 400 },
+      );
+    }
+
+    const product = await productService.updateProduct(
+      parseInt(id),
+      validationResult.data,
+    );
     return NextResponse.json({ success: true, data: product });
   } catch (error) {
+    console.error("Error updating product:", error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 400 },
@@ -52,9 +86,7 @@ export async function PUT(request, { params }) {
   }
 }
 
-// DELETE product
 export async function DELETE(request, { params }) {
-  // ADD THIS AUTH CHECK
   if (!isAuthenticated(request)) {
     return NextResponse.json(
       { success: false, error: "Authentication required" },
@@ -70,6 +102,7 @@ export async function DELETE(request, { params }) {
       message: "Product deleted successfully",
     });
   } catch (error) {
+    console.error("Error deleting product:", error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 404 },

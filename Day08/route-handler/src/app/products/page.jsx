@@ -21,7 +21,7 @@ export default function ProductsPage() {
       console.log("Has auth_token cookie?", hasCookie);
       console.log("All cookies:", document.cookie);
 
-      if (!hasCookie) {
+      if (hasCookie) {
         console.log(" No auth_token cookie found, redirecting to login");
         router.push("/login");
         return;
@@ -88,7 +88,29 @@ export default function ProductsPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:border-gray-400 transition-colors flex items-center gap-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+          Dashboard
+        </button>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+        </div>
         <Link
           href="/products/create"
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"

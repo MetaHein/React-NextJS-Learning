@@ -1,14 +1,22 @@
 import { NextResponse } from "next/server";
 import productService from "@/services/product.service";
+import { productSchema } from "@/lib/validations/product";
 
 function isAuthenticated(request) {
   // Debug: Log all cookies
   console.log("All cookies in API:", request.cookies.getAll());
 
-  const token = request.cookies.get("auth_token")?.value;
+  // FIX: Check for 'session_id' instead of 'auth_token'
+  const token = request.cookies.get("session_id")?.value;
   console.log("Token found:", token ? "Yes" : "No");
 
-  return !!token;
+  // Also check Authorization header as fallback
+  const authHeader = request.headers.get("authorization");
+  const tokenFromHeader = authHeader?.startsWith("Bearer ")
+    ? authHeader.substring(7)
+    : null;
+
+  return !!(token || tokenFromHeader);
 }
 
 export async function GET(request) {
@@ -42,7 +50,27 @@ export async function POST(request) {
 
   try {
     const body = await request.json();
-    const product = await productService.createProduct(body);
+
+    // Validate the request body with Zod
+    const validationResult = productSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      // Return validation errors
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Validation failed",
+          details: validationResult.error.errors.map((err) => ({
+            field: err.path.join("."),
+            message: err.message,
+          })),
+        },
+        { status: 400 },
+      );
+    }
+
+    // Use the validated data
+    const product = await productService.createProduct(validationResult.data);
     return NextResponse.json({ success: true, data: product }, { status: 201 });
   } catch (error) {
     return NextResponse.json(

@@ -19,12 +19,11 @@ export default function CreateProductPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
+      <h1 className="text-2xl font-bold text-gray-900 text-center">
         Create New Product
       </h1>
-      <div className="max-w-md">
-        <ProductForm onSubmit={handleSubmit} buttonText="Create Product" />
-      </div>
+
+      <ProductForm onSubmit={handleSubmit} buttonText="Create Product" />
     </div>
   );
 }

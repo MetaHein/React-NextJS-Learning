@@ -1,6 +1,20 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const hasSessionId = document.cookie.includes("session_id=");
+    if (hasSessionId) {
+      router.push("/dashboard");
+    }
+  }, [router]);
+
   return (
     <div className="text-center py-12">
       <h1 className="text-4xl font-bold text-gray-900 mb-4">

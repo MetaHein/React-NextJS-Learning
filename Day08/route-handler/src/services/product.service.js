@@ -1,5 +1,4 @@
 import productRepository from "@/repositories/product.repo";
-import { productSchema } from "@/lib/validations/product";
 
 class ProductService {
   async getAllProducts() {
@@ -24,19 +23,15 @@ class ProductService {
 
   async createProduct(productData) {
     try {
-      // Validate data
-      const validatedData = productSchema.parse(productData);
-      return await productRepository.create(validatedData);
+      return await productRepository.create(productData);
     } catch (error) {
-      throw new Error(`Validation error: ${error.message}`);
+      throw new Error(`Error creating product: ${error.message}`);
     }
   }
 
   async updateProduct(id, productData) {
     try {
-      // Validate data
-      const validatedData = productSchema.partial().parse(productData);
-      const updated = await productRepository.update(id, validatedData);
+      const updated = await productRepository.update(id, productData);
       if (!updated) {
         throw new Error("Product not found");
       }
@@ -59,4 +54,5 @@ class ProductService {
   }
 }
 
+// eslint-disable-next-line import/no-anonymous-default-export
 export default new ProductService();

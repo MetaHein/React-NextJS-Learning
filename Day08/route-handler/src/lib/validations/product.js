@@ -15,4 +15,4 @@ export const productSchema = z.object({
     .max(50, "Item must be less than 50 characters"),
 });
 
-// export const productUpdateSchema = productSchema.partial();
+export const productUpdateSchema = productSchema.partial();
